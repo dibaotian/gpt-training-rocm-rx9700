@@ -284,9 +284,7 @@ export MASTER_PORT=29500
 
 ## 📊 使用 TensorBoard 监控训练
 
-### 什么是 TensorBoard？
-
-TensorBoard 是一个可视化工具，可以实时查看训练过程中的各种指标（损失、学习率等），帮助您：
+TensorBoard 可以实时查看训练过程中的各种指标（损失、学习率等），帮助：
 - 实时监控训练进度
 - 分析训练效果
 - 对比不同实验
@@ -325,12 +323,7 @@ tensorboard --logdir=./output_single_chinese/logs
 ```
 http://localhost:6006
 ```
-
-如果是远程服务器，需要端口转发：
-```bash
-# 在本地机器上执行
-ssh -L 6006:localhost:6006 user@server_ip
-```
+![alt text](image-1.png)
 
 ### TensorBoard 界面说明
 
