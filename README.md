@@ -38,12 +38,8 @@ python3 train_single_gpu.py --model_size tiny
 python3 test_generation.py
 ```
 
-**Docker优势**：
+**Docker**：
 - ✅ 预装PyTorch 2.8.0 + ROCm 7.1
-- ✅ 版本完全匹配，无兼容性问题
-- ✅ 几分钟即可开始训练
-- ✅ 环境隔离，不影响主机
-
 详细文档：[DOCKER_SETUP.md](DOCKER_SETUP.md)
 
 ### 💻 方式二：本地环境（使用uv）
@@ -70,7 +66,7 @@ uv run python test_generation.py
 
 ## 📦 环境安装
 
-本项目推荐使用 **uv** 来管理Python环境和依赖。uv是一个极快的Python包管理器，比传统的pip和venv快10-100倍。
+本项目推荐使用 **uv** 来管理Python环境和依赖
 
 ### 方法一：自动安装（推荐）
 
@@ -88,7 +84,7 @@ uv run python test_generation.py
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # 添加到PATH（如果需要）
-export PATH="$HOME/.cargo/bin:$PATH"
+export PATH="$HOME/.local/bin:$PATH"
 
 # 验证安装
 uv --version
@@ -107,12 +103,14 @@ source .venv/bin/activate
 #### 步骤3: 安装PyTorch (ROCm版本)
 
 ```bash
-# 使用uv安装PyTorch
-# ROCm 6.1
-uv pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/rocm6.1
+# 使用uv安装PyTorch(目前找不到rocm7.1 只能降级到6.3)
+# ROCm 6.3
+uv pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/rocm6.3
 
-# ROCm 6.0
-# uv pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/rocm6.0
+or 
+
+pip install torch==2.7.1 torchvision==0.22.1 torchaudio==2.7.1 --index-url https://download.pytorch.org/whl/rocm6.3
+
 ```
 
 #### 步骤4: 安装其他依赖
@@ -133,22 +131,6 @@ python3 -c "import torch; print(f'GPU可用: {torch.cuda.is_available()}'); prin
 
 # 检查ROCm
 rocm-smi
-```
-
-### 传统方式（venv + pip）
-
-如果您不想使用uv，也可以使用传统的venv和pip：
-
-```bash
-# 创建虚拟环境
-python3 -m venv gpt_train_env
-source gpt_train_env/bin/activate
-
-# 安装PyTorch
-pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/rocm6.1
-
-# 安装依赖
-pip3 install -r requirements.txt
 ```
 
 ## 🎯 阶段一：单GPU训练
@@ -189,11 +171,11 @@ python3 train_single_gpu.py \
 
 ### 模型大小选择
 
-| 模型大小 | 参数量 | 显存需求 | 训练时长 | 适用场景 |
-|---------|--------|---------|---------|---------|
-| tiny    | ~50M   | <2GB    | 快速    | 快速验证 |
-| small   | ~117M  | ~3GB    | 中等    | 推荐入门 |
-| medium  | ~345M  | ~8GB    | 较长    | 更好效果 |
+| 模型大小 | 参数量 | 显存需求 |
+|---------|--------|---------|
+| tiny    | ~50M   | <2GB    | 
+| small   | ~117M  | ~3GB    | 
+| medium  | ~345M  | ~8GB    | 
 
 ### 监控训练
 
@@ -439,40 +421,6 @@ gpt_train/
 - [RCCL文档](https://github.com/ROCmSoftwarePlatform/rccl)
 - [NanoGPT项目](https://github.com/karpathy/nanoGPT)
 
-## 💡 使用uv的优势
-
-1. **极快的速度**：uv比pip快10-100倍
-2. **更好的依赖解析**：避免依赖冲突
-3. **现代化体验**：更好的错误提示和进度显示
-4. **兼容pip**：可以无缝替换pip命令
-
-### uv常用命令
-
-```bash
-# 创建虚拟环境
-uv venv
-
-# 安装包
-uv pip install <package>
-
-# 安装requirements.txt
-uv pip install -r requirements.txt
-
-# 从pyproject.toml安装
-uv pip install -e .
-
-# 列出已安装的包
-uv pip list
-
-# 运行脚本（自动使用虚拟环境）
-uv run python script.py
-
-# 同步依赖（确保环境与配置一致）
-uv pip sync requirements.txt
-```
-
-## 🔧 进阶优化
-
 ### 使用Wandb跟踪实验
 
 ```bash
@@ -496,15 +444,6 @@ ls output_single/
 
 # 自动从最新检查点恢复（Trainer会自动处理）
 ```
-
-## 📝 下一步
-
-1. ✅ 完成环境安装
-2. ✅ 运行单GPU训练验证环境
-3. ✅ 测试模型生成效果
-4. ✅ 配置多节点网络和存储
-5. ✅ 运行多GPU分布式训练
-6. ✅ 对比训练效率和效果
 
 ---
 
