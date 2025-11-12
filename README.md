@@ -282,6 +282,168 @@ export MASTER_ADDR=192.168.1.100
 export MASTER_PORT=29500
 ```
 
+## 📊 使用 TensorBoard 监控训练
+
+### 什么是 TensorBoard？
+
+TensorBoard 是一个可视化工具，可以实时查看训练过程中的各种指标（损失、学习率等），帮助您：
+- 实时监控训练进度
+- 分析训练效果
+- 对比不同实验
+- 调试训练问题
+
+### 启动 TensorBoard
+
+训练脚本会自动将日志保存到输出目录的 `logs` 子目录中。
+
+#### 方法1：训练时启动（推荐）
+
+```bash
+# 在开始训练前，另开一个终端启动 TensorBoard
+tensorboard --logdir=./output_single/logs --port=6006
+
+# 或指定多个实验目录
+tensorboard --logdir_spec=single:./output_single/logs,multi:./output_distributed/logs
+```
+
+#### 方法2：训练后查看
+
+```bash
+# 查看单GPU训练结果
+tensorboard --logdir=./output_single/logs
+
+# 查看多GPU训练结果  
+tensorboard --logdir=./output_distributed/logs
+
+# 查看中文训练结果
+tensorboard --logdir=./output_single_chinese/logs
+```
+
+### 访问 TensorBoard
+
+启动后，在浏览器中访问：
+```
+http://localhost:6006
+```
+
+如果是远程服务器，需要端口转发：
+```bash
+# 在本地机器上执行
+ssh -L 6006:localhost:6006 user@server_ip
+```
+
+### TensorBoard 界面说明
+
+#### 1. **SCALARS** 标签页（最常用）
+- `train/loss` - 训练损失曲线
+- `train/learning_rate` - 学习率变化
+- `train/epoch` - 当前训练轮数
+- `train/global_step` - 训练步数
+
+#### 2. **查看训练指标**
+```
+- 损失下降趋势：应该持续下降并趋于稳定
+- 学习率：查看学习率调度是否正常
+- 训练速度：每步耗时（samples/sec）
+```
+
+#### 3. **对比多个实验**
+```bash
+# 同时查看多个训练运行
+tensorboard --logdir=./output_single --port=6006
+
+# 目录结构示例：
+# output_single/
+#   ├── run1_tiny_3epochs/logs/
+#   ├── run2_small_5epochs/logs/
+#   └── run3_medium_10epochs/logs/
+```
+
+### 训练日志位置
+
+默认日志保存路径：
+```
+单GPU训练：
+  ./output_single/logs/
+  ./output_single_optimized/logs/
+
+多GPU训练：
+  ./output_distributed/logs/
+  
+中文训练：
+  ./output_single_chinese/logs/
+```
+
+### TensorBoard 高级用法
+
+#### 后台运行
+
+```bash
+# 后台启动 TensorBoard
+nohup tensorboard --logdir=./output_single/logs --port=6006 > tensorboard.log 2>&1 &
+
+# 查看日志
+tail -f tensorboard.log
+
+# 停止
+pkill -f tensorboard
+```
+
+#### 指定主机和端口
+
+```bash
+# 允许外部访问
+tensorboard --logdir=./output_single/logs --host=0.0.0.0 --port=6006
+
+# 使用不同端口
+tensorboard --logdir=./output_single/logs --port=6007
+```
+
+#### 多实验对比
+
+```bash
+# 方式1：多个目录
+tensorboard --logdir_spec=\
+tiny:./output_tiny/logs,\
+small:./output_small/logs,\
+medium:./output_medium/logs
+
+# 方式2：父目录（自动识别子目录）
+tensorboard --logdir=./all_experiments/
+```
+
+### 示例：完整训练+监控流程
+
+```bash
+# 终端1：启动 TensorBoard
+tensorboard --logdir=./output_single/logs --port=6006
+
+# 终端2：开始训练
+python3 train_single_gpu.py --model_size small --epochs 5
+
+# 终端3：监控GPU
+watch -n 1 rocm-smi
+
+# 浏览器：访问 http://localhost:6006 查看训练曲线
+```
+
+### 导出训练曲线
+
+```bash
+# TensorBoard 支持导出数据为 CSV
+# 在 TensorBoard 界面点击左下角的下载按钮
+
+# 或使用 Python 读取事件文件
+python3 -c "
+from tensorboard.backend.event_processing import event_accumulator
+ea = event_accumulator.EventAccumulator('./output_single/logs/events.out.tfevents.*')
+ea.Reload()
+print(ea.Tags())
+"
+```
+
+---
+
 ## 🧪 测试模型
 
 ### 基础测试
@@ -367,7 +529,7 @@ export HF_ENDPOINT=https://hf-mirror.com
 ### 5. 训练速度慢
 
 - 减小`max_length`（序列长度）
-- 启用混合精度（如果支持）: `--fp16`
+- 启用混合精度（如果支持）: `--bf16`
 - 增加`gradient_accumulation_steps`
 - 使用更快的数据集加载器
 
