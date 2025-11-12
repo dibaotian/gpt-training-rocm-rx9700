@@ -1,0 +1,78 @@
+version: '3.8'
+
+services:
+  gpt-train:
+    image: rocm/pytorch:rocm7.1_ubuntu22.04_py3.10_pytorch_release_2.8.0
+    container_name: gpt-train-rocm
+    
+    # GPU设备
+    devices:
+      - /dev/kfd
+      - /dev/dri
+    
+    # 用户组
+    group_add:
+      - video
+      - render
+    
+    # 权限
+    cap_add:
+      - SYS_PTRACE
+    security_opt:
+      - seccomp=unconfined
+    
+    # IPC和共享内存
+    ipc: host
+    shm_size: 8G
+    
+    # 目录挂载
+    volumes:
+      - ./:/workspace
+      - ./data:/data
+      - ./output_single:/output_single
+      - ./output_distributed:/output_distributed
+      - ./gpt_model:/models/gpt_model
+      - ./gpt_model_distributed:/models/gpt_model_distributed
+    
+    working_dir: /workspace
+    
+    # 环境变量
+    environment:
+      - HSA_OVERRIDE_GFX_VERSION=11.0.0
+      - PYTORCH_ROCM_ARCH=gfx1100
+      - NCCL_DEBUG=INFO
+      - NCCL_SOCKET_IFNAME=eth0
+    
+    # 保持容器运行
+    stdin_open: true
+    tty: true
+    
+    # 启动命令
+    command: /bin/bash
+
+  # 多节点训练时的配置（可选）
+  gpt-train-node1:
+    extends: gpt-train
+    container_name: gpt-train-node1
+    network_mode: host
+    environment:
+      - HSA_OVERRIDE_GFX_VERSION=11.0.0
+      - PYTORCH_ROCM_ARCH=gfx1100
+      - MASTER_ADDR=192.168.1.100
+      - MASTER_PORT=29500
+      - NODE_RANK=0
+    profiles:
+      - multinode
+
+  gpt-train-node2:
+    extends: gpt-train
+    container_name: gpt-train-node2
+    network_mode: host
+    environment:
+      - HSA_OVERRIDE_GFX_VERSION=11.0.0
+      - PYTORCH_ROCM_ARCH=gfx1100
+      - MASTER_ADDR=192.168.1.100
+      - MASTER_PORT=29500
+      - NODE_RANK=1
+    profiles:
+      - multinode

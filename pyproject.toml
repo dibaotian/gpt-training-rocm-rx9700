@@ -1,0 +1,49 @@
+[project]
+name = "gpt-train-rt9700"
+version = "0.1.0"
+description = "GPT模型训练项目 - RT9700 ROCm环境"
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+    "transformers>=4.30.0",
+    "datasets>=2.14.0",
+    "tokenizers>=0.13.0",
+    "accelerate>=0.20.0",
+    "numpy>=1.24.0",
+    "pandas>=2.0.0",
+    "tensorboard>=2.13.0",
+    "wandb>=0.15.0",
+    "tqdm>=4.65.0",
+    "scipy>=1.10.0",
+    "scikit-learn>=1.3.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "black>=23.0.0",
+    "flake8>=6.0.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv]
+# uv特定配置
+dev-dependencies = [
+    "pytest>=7.0.0",
+    "black>=23.0.0",
+]
+
+[tool.black]
+line-length = 100
+target-version = ['py38', 'py39', 'py310', 'py311']
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+
+# 注意: PyTorch需要根据ROCm版本单独安装
+# 使用以下命令安装:
+# uv pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/rocm6.1
